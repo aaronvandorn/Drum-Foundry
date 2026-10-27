@@ -49,6 +49,15 @@ A sound has three parts plus a master section:
 - **Kit:** collect sounds with **Add to kit** or **Add 8 variations**, rename them, edit and replace them, then **Save kit** for one .zip of numbered WAVs plus `kit.json`. **Load kit** reads that .zip (or the JSON) back in.
 - The current sound, settings and kit are kept in your browser between visits.
 
+## Send to Discobot
+
+**Send to Discobot** (the current sound) and **Send kit to Discobot** (up to 64 sounds) open [Discobot](https://iw978599.github.io/discobot/) in a new tab and hand it the WAVs. Discobot opens its Import Kit dialog with each sound on a suggested drum lane (kick, snare, clap, closed hat, open hat, low or high tom, cymbal). Percussion and FX sounds are offered as new rows. Change any lane there and press Import; nothing is added until you do. The line under the buttons says when Discobot has them.
+
+- Discobot's receiving side is still to come. Until it arrives, the button waits 45 seconds, then offers to save the file instead. See [DISCOBOT-SEND.md](DISCOBOT-SEND.md) for the handshake and the request for Discobot.
+- The sounds go at the format chosen under Output. A file that would be over 4 MB goes as 16-bit, so it fits in a Discobot project file.
+- If the browser blocks the new tab, allow pop-ups for this page.
+- Saved files are named by drum (`kick-…`, `snare-…`, `closed-hat-…`, `open-hat-…`, `cymbal-…`, `low-tom`, `perc-…`, `fx-…`). That means a saved kit also lands on the right lanes through Discobot's Import Kit by hand: unzip it and pick the WAVs.
+
 ## Session recorder
 
 Uses the shared `jam-clips.js` module (the `JAM-CLIPS` block in `index.html`), like the other apps: the last 48 seconds of what you've auditioned can be saved as WAV plus a MIDI file of the hits (General MIDI drum notes on channel 10), and Tape Loop Deck can capture from it.

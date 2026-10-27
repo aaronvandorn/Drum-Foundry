@@ -155,6 +155,8 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .fileline{font-family:var(--mono);font-size:13px;color:var(--muted);word-break:break-all}
 .fileline b{color:var(--ink);font-weight:500}
 .note-s{color:var(--muted);font-size:13px}
+.dbstatus{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0;color:var(--ink)}
+.dbstatus .led{flex:none}
 .kit{display:grid;gap:4px;max-height:420px;overflow:auto}
 .kitrow{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--well);border:1px solid var(--line);border-radius:5px;padding:4px 6px}
 .kitrow.cur{border-color:var(--oxide-hi)}
@@ -244,11 +246,13 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <div class="fileline" id="fileLine"></div>
       <div class="row">
         <button class="btn primary" id="saveWav">Save WAV</button>
+        <button class="btn" id="sendDb" title="Open Discobot and put this sound on a drum lane">Send to Discobot</button>
         <button class="btn" id="addKit">Add to kit</button>
         <button class="btn" id="savePatch">Save patch</button>
         <button class="btn" id="loadPatch">Load patch or WAV</button>
         <input type="file" id="patchFile" accept=".json,.wav,application/json,audio/wav" hidden>
       </div>
+      <p class="note-s dbstatus" id="dbStatus" aria-live="polite" hidden></p>
       <p class="note-s" id="dlNote" hidden>In this preview, files save inside a .zip (the preview window only allows .zip downloads). On your own copy of the page they save as plain .wav.</p>
       <p class="note-s">Each WAV carries its patch, so loading a saved WAV here brings the full sound back for editing.</p>
     </section>
@@ -258,6 +262,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <div class="row">
         <button class="btn small" id="vars8">Add 8 variations</button>
         <button class="btn small primary" id="saveKit">Save kit (.zip)</button>
+        <button class="btn small" id="sendKitDb" title="Open Discobot and put the whole kit on its drum lanes">Send kit to Discobot</button>
         <button class="btn small" id="loadKit">Load kit</button>
         <input type="file" id="kitFile" accept=".zip,.json,application/zip,application/json" hidden>
         <button class="btn small" id="clearKit">Clear</button>
@@ -2347,7 +2352,18 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     toast('Saved ' + name);
     return Promise.resolve();
   }
-  function fileName() { return slug(S.name) + '.wav'; }
+  /* File names lead with the drum they are, in words Discobot's Import Kit (and most samplers) read,
+     so a kit lands on the right lanes by itself: kick, snare, clap, closed hat, open hat, cymbal, tom. */
+  var CAT_WORD = { kick: ['kick', /kick/], snare: ['snare', /snare/], clap: ['clap', /clap/],
+    hat: ['closed-hat', /(^|-)hat(-|$)/], ohat: ['open-hat', /open.*hat|hat.*open/], cym: ['cymbal', /cymbal|crash|ride/],
+    tom: ['tom', /tom/], perc: ['perc', /^$/], fx: ['fx', /^$/] };
+  function soundSlug(name, cat) {
+    var s = slug(name), w = CAT_WORD[cat];
+    if (!w) return s;
+    if (cat === 'hat' && /open/.test(s)) s = s.replace(/open/g, 'opn');
+    return w[1].test(s) ? s : w[0] + '-' + s;
+  }
+  function fileName() { return soundSlug(S.name, S.cat) + '.wav'; }
   function fileLine() {
     var r = S.res, box = $('#fileLine'); box.textContent = '';
     box.append('Saves as ', h('b', { text: fileName() }), r ? ' · ' + srTxt(S.fmt.sr) + ' · ' + bitsTxt(S.fmt.bits) + ' · ' + (S.fmt.channels === 2 ? 'stereo' : 'mono') + ' · ≈ ' + kb(wavBytes(r)) : '');
@@ -2358,6 +2374,75 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
       saveBlob(new Blob([bytes], { type: 'audio/wav' }), fileName());
     });
   }
+
+  /* ---------------- send to Discobot ----------------
+     Opens Discobot in a new tab and hands it WAVs over postMessage once it says it is ready. Discobot shows
+     them in its Import Kit dialog, each with the lane suggested here, and stores nothing until confirmed.
+     The handshake is described in DISCOBOT-SEND.md. ?discobot=<address> points it at another copy (testing). */
+  var DB_URL = 'https://iw978599.github.io/discobot/';
+  try { var qdb = new URLSearchParams(location.search).get('discobot'); if (qdb && /^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)[:/]/.test(qdb)) DB_URL = qdb; } catch (e) {}
+  var DB_ORIGIN = (function () { try { return new URL(DB_URL).origin; } catch (e) { return ''; } })();
+  var DB_WAIT_MS = 45000, DB_MAX_FILES = 64, DB_EMBED_BYTES = 4 * 1024 * 1024;
+  var DB_LANE = { kick: 'kick', snare: 'snare', clap: 'clap', hat: 'closedHH', ohat: 'openHH', cym: 'crash' };
+  function laneFor(cat, name) {
+    if (DB_LANE[cat]) return DB_LANE[cat];
+    if (cat === 'tom') return /low|floor/i.test(name) ? 'snare2' : /high|\bhi\b/i.test(name) ? 'ride' : null;
+    return null;
+  }
+  var dbSend = null;
+  function dbStatus(text, kind, retry) {
+    var box = $('#dbStatus'); box.textContent = ''; box.hidden = !text;
+    if (!text) return;
+    box.append(h('span', { class: 'led' + (kind === 'ok' ? ' on' : kind === 'wait' ? ' hit' : '') }), h('span', { text: text }));
+    if (retry) { var b = h('button', { class: 'btn small', type: 'button', text: retry.label }); b.addEventListener('click', retry.run); box.append(b); }
+  }
+  function dbFiles(items) {
+    var used = {};
+    return items.slice(0, DB_MAX_FILES).map(function (it, i) {
+      var r = Object.assign({}, it.res || E.render(it.patch, S.fmt)), fmt = clone(S.fmt);
+      r.fmt = fmt;
+      var bytes = wavFile(r, it.name, patchMeta(it.name, it.cat, it.patch));
+      if (bytes.length > DB_EMBED_BYTES && fmt.bits > 16) { r.fmt = Object.assign({}, fmt, { bits: 16 }); bytes = wavFile(r, it.name, patchMeta(it.name, it.cat, it.patch)); }
+      var base = (items.length > 1 ? String(i + 1).padStart(2, '0') + '-' : '') + soundSlug(it.name, it.cat), nm = base, n = 2;
+      while (used[nm]) nm = base + '-' + (n++); used[nm] = 1;
+      return { name: nm + '.wav', mime: 'audio/wav', lane: laneFor(it.cat, it.name), data: bytes.buffer };
+    });
+  }
+  function endSend() { if (dbSend) { clearTimeout(dbSend.timer); dbSend = null; } }
+  function sendToDiscobot(items, label, fallback) {
+    if (!items.length) return;
+    endSend();
+    var w = null;
+    try { w = window.open(DB_URL + '#receive', '_blank'); } catch (e) { w = null; }
+    if (!w) {
+      dbStatus('Your browser didn\'t open Discobot. Allow pop-ups for this page, or save the file and use Import Kit in Discobot.', 'err', fallback);
+      return;
+    }
+    dbSend = { w: w, items: items, label: label, fallback: fallback, sent: false };
+    dbSend.timer = setTimeout(function () {
+      if (!dbSend || dbSend.sent) return;
+      var fb = dbSend.fallback; endSend();
+      dbStatus('Discobot didn\'t answer. Its tab may still be loading, or it may not take sounds from other apps yet. You can save instead and use Import Kit there.', 'err', fb);
+    }, DB_WAIT_MS);
+    dbStatus('Opening Discobot to send ' + label + '…', 'wait');
+  }
+  window.addEventListener('message', function (e) {
+    if (!dbSend || e.source !== dbSend.w || e.origin !== DB_ORIGIN) return;
+    var m = e.data;
+    if (!m || typeof m !== 'object' || m.discobotImport !== 1 || typeof m.type !== 'string') return;
+    if (m.type === 'ready' && !dbSend.sent) {
+      var files = dbFiles(dbSend.items);
+      dbSend.sent = true;
+      dbSend.w.postMessage({ discobotImport: 1, type: 'sounds', v: 1, from: 'Drum Foundry', files: files }, DB_ORIGIN, files.map(function (f) { return f.data; }));
+      dbStatus('Sent ' + dbSend.label + '. Check the lanes in Discobot\'s Import Kit dialog and press Import.', 'wait');
+    } else if (m.type === 'done') {
+      var n = Math.max(0, Math.round(+m.imported || 0)); endSend();
+      dbStatus(n ? 'Discobot put ' + n + (n === 1 ? ' sound' : ' sounds') + ' on its drum lanes.' : 'Nothing was added in Discobot.', n ? 'ok' : '');
+    } else if (m.type === 'error') {
+      var fb2 = dbSend.fallback; endSend();
+      dbStatus('Discobot couldn\'t take the sounds' + (typeof m.message === 'string' ? ': ' + m.message.slice(0, 160) : '.'), 'err', fb2);
+    }
+  });
 
   /* ---------------- presets & head ---------------- */
   function buildCats() {
@@ -2414,7 +2499,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
   function renderKit() {
     var box = $('#kitList'); box.textContent = '';
     $('#kitNote').textContent = S.kit.length ? S.kit.length + (S.kit.length === 1 ? ' sound' : ' sounds') + ' · saved together as one .zip of WAVs plus kit.json' : '';
-    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length;
+    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length;
     if (!S.kit.length) {
       box.append(h('div', { class: 'empty' }, 'Your kit is empty. Press ', h('b', { text: 'Add to kit' }), ' to keep the current sound here, or ', h('b', { text: 'Add 8 variations' }), ' for a batch of takes on it.'));
       return;
@@ -2440,7 +2525,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     var files = [], used = {};
     S.kit.forEach(function (k, i) {
       var r = E.render(k.patch, S.fmt); r.fmt = clone(S.fmt);
-      var base = String(i + 1).padStart(2, '0') + '-' + slug(k.name), nm = base, n = 2;
+      var base = String(i + 1).padStart(2, '0') + '-' + soundSlug(k.name, k.cat), nm = base, n = 2;
       while (used[nm]) nm = base + '-' + (n++); used[nm] = 1;
       files.push({ name: nm + '.wav', data: wavFile(r, k.name, patchMeta(k.name, k.cat, k.patch)) });
     });
@@ -2566,6 +2651,14 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     toast('Added 8 variations of ' + S.name);
   });
   $('#saveKit').addEventListener('click', saveKit);
+  $('#sendDb').addEventListener('click', function () {
+    var item = { name: S.name, cat: S.cat, patch: clone(S.patch), res: (!S.busy && !S.dirty && S.res) ? S.res : null };
+    sendToDiscobot([item], S.name, { label: 'Save WAV', run: saveWav });
+  });
+  $('#sendKitDb').addEventListener('click', function () {
+    if (!S.kit.length) return;
+    sendToDiscobot(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, DB_MAX_FILES) + ' sounds)', { label: 'Save kit', run: saveKit });
+  });
   $('#loadKit').addEventListener('click', function () { $('#kitFile').click(); });
   $('#kitFile').addEventListener('change', function (e) {
     var f = e.target.files[0]; e.target.value = ''; if (!f) return;
