@@ -66,11 +66,11 @@ button,input,select{font:inherit;color:inherit}
 .led.hit{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;letter-spacing:.06em;color:var(--muted)}
 
-main{max-width:1400px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+main{max-width:1400px;margin:0 auto;padding-block:12px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
 
 /* ---------- hit console */
-.hit{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px 14px}
-.hit-l{display:grid;gap:10px;min-width:0}
+.hit{display:grid;grid-template-columns:minmax(0,1fr) 200px;gap:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px 12px}
+.hit-l{display:grid;gap:8px;min-width:0}
 .cats{display:flex;flex-wrap:wrap;gap:4px}
 .cats button{background:var(--well);border:1px solid var(--line);border-radius:4px;padding:5px 11px;cursor:pointer;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600;font-size:13px}
 .cats button[aria-pressed="true"]{background:var(--panel-2);color:var(--ink);border-color:var(--oxide-hi);box-shadow:inset 0 -2px 0 var(--oxide-hi)}
@@ -79,11 +79,12 @@ main{max-width:1400px;margin:0 auto;padding-block:16px 56px;padding-left:max(16p
 .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 select.sel,input.txt{background:var(--well);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-width:0}
 input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.03em;padding:3px 8px;width:100%}
-.namebox{display:flex;align-items:center;gap:8px;flex:1 1 260px;min-width:0}
+.namebox{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:0}
+.namebox .btn{flex:none;white-space:nowrap}
 .vary{display:inline-flex;align-items:center;gap:6px;background:var(--well);border:1px solid var(--line);border-radius:5px;padding:2px 4px 2px 8px}
 .vary .pot{min-width:0}
 
-.pad{position:relative;display:grid;place-items:center;align-content:center;gap:4px;min-height:132px;border-radius:8px;border:1px solid var(--oxide-hi);border-bottom-width:4px;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--oxide-hi) 30%,var(--oxide)),var(--oxide));color:var(--on-accent);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.pad{position:relative;display:grid;place-items:center;align-content:center;gap:4px;min-height:112px;border-radius:8px;border:1px solid var(--oxide-hi);border-bottom-width:4px;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--oxide-hi) 30%,var(--oxide)),var(--oxide));color:var(--on-accent);cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .pad:active,.pad.down{transform:translateY(2px);border-bottom-width:2px}
 .pad b{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:.1em;line-height:1}
 .pad small{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
@@ -94,7 +95,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .tog.mini{padding:2px 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
 
 .scope{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:10px}
-.scr{position:relative;height:150px;background:var(--well);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.scr{position:relative;height:116px;background:var(--well);border:1px solid var(--line);border-radius:5px;overflow:hidden}
 .scr canvas{position:absolute;inset:0;width:100%;height:100%}
 .scr .tag{position:absolute;left:6px;top:5px;padding:1px 4px;border-radius:3px;background:color-mix(in srgb,var(--well) 82%,transparent);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);pointer-events:none}
 .scr .busy{position:absolute;right:8px;top:6px;font-family:var(--mono);font-size:11px;color:var(--amber)}
@@ -103,15 +104,28 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .readouts b{font-family:var(--mono);font-weight:500;color:var(--ink);font-size:13px}
 .readouts .warn b{color:var(--alert)}
 
+/* ---------- section tabs */
+.tabbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:-6px}
+.tabbar .band-h{flex:1 1 300px;min-width:0;gap:8px 10px}
+.tabbar .band-h .hint{flex:1 1 200px;min-width:0;font-size:14px}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;background:var(--well);border:1px solid var(--line);border-radius:6px;padding:3px;max-width:100%}
+.tabs button{display:inline-flex;align-items:center;gap:7px;background:none;border:0;padding:7px 14px;border-radius:4px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--panel-2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--oxide-hi)}
+.tabs button .led{width:7px;height:7px}
+.tabs .count{font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--oxide-hi)}
+.band-h .lbl{font-size:12px}
+.outgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px;align-items:start}
+
 /* ---------- bands of modules */
 .band{display:grid;gap:10px}
 .band-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.band-h h2{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.05em;text-transform:uppercase;margin:0}
+.band-h[hidden]{display:none}
 .band-h .rule{flex:1 1 40px;height:1px;background:var(--line)}
 .band-h .hint{color:var(--muted);font-size:14px}
 .mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,236px),1fr));gap:10px;align-items:start}
 .band.off .mods{opacity:.5}
-.mod{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px 12px;display:grid;gap:10px;min-width:0}
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 10px 11px;display:grid;gap:8px;min-width:0}
 .mod.off > :not(.mod-h){opacity:.45}
 .mod-h{display:flex;align-items:center;gap:8px}
 .mod-h h3{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.05em;text-transform:uppercase;margin:0;color:var(--oxide-hi)}
@@ -120,23 +134,24 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .opts{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--well)}
 .seg button{background:var(--well);border:0;padding:4px 9px;cursor:pointer;color:var(--muted);font-size:14px}
-.seg.wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));width:100%}
-.seg.wide button{padding:4px 2px;font-size:13px}
+.seg.wide{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));width:100%}
+.seg.wide button{padding:4px 2px;font-size:13px;white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--oxide-hi)}
-.knobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px 4px;justify-items:center}
+.knobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px 2px;justify-items:center}
 .envg{height:46px;position:relative;background:var(--well);border:1px solid var(--line);border-radius:4px;overflow:hidden}
 .envg canvas{position:absolute;inset:0;width:100%;height:100%}
 
 /* pot (knob + editable number), same widget as Tape Loop Deck */
-.pot{display:grid;grid-template-columns:auto;justify-items:center;row-gap:1px;min-width:0}
+.pot{display:grid;grid-template-columns:auto;justify-items:center;row-gap:1px;min-width:0;width:100%}
+#bands{display:contents}
 .pot .knob{width:38px;height:38px;cursor:ns-resize;touch-action:none;outline:none;border-radius:50%}
 .pot .knob:focus-visible{box-shadow:0 0 0 2px var(--teal)}
 .knob .trk{fill:none;stroke:var(--line);stroke-width:3.5;stroke-linecap:round}
 .knob .arc{fill:none;stroke:var(--oxide-hi);stroke-width:3.5;stroke-linecap:round}
 .knob .cap{fill:var(--panel-2);stroke:var(--line);stroke-width:1}
 .knob .ptr{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
-.pot .nm{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
-.pot .nr{display:flex;align-items:baseline;gap:2px;min-width:0;max-width:100%}
+.pot .nm{font-size:10px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pot .nr{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;column-gap:2px;min-width:0;max-width:100%}
 .pot .num{font:500 12px/1.2 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed transparent;padding:0;margin:0;min-width:0;max-width:100%;cursor:ns-resize;touch-action:none;outline:none;border-radius:0;text-align:center}
 .pot .num:hover{border-bottom-color:var(--muted)}
 .pot .num:focus{cursor:text;touch-action:auto;border-bottom:1px solid var(--oxide-hi);background:color-mix(in srgb,var(--oxide-hi) 12%,transparent)}
@@ -157,7 +172,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .note-s{color:var(--muted);font-size:13px}
 .dbstatus{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0;color:var(--ink)}
 .dbstatus .led{flex:none}
-.kit{display:grid;gap:4px;max-height:420px;overflow:auto}
+.kit{display:grid;gap:4px}
 .kitrow{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--well);border:1px solid var(--line);border-radius:5px;padding:4px 6px}
 .kitrow.cur{border-color:var(--oxide-hi)}
 .kitrow .ix{font-family:var(--mono);font-size:12px;color:var(--oxide-hi);text-align:right}
@@ -175,7 +190,8 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:9px 16px;box-shadow:0 6px 20px var(--shadow);z-index:40;max-width:calc(100% - 32px)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-@media (max-width:900px){.lower{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.outgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.tabs button{justify-content:center;padding:7px 4px;font-size:12px;letter-spacing:.06em;white-space:normal;text-align:center}}
 @media (max-width:720px){
   .hit{grid-template-columns:minmax(0,1fr)}
   .padside{grid-template-columns:minmax(0,1fr) auto;align-items:stretch}
@@ -212,6 +228,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
         <div class="namebox">
           <label class="lbl" for="nameIn">Name</label>
           <input class="txt" id="nameIn" maxlength="48" autocomplete="off" spellcheck="false">
+          <button class="btn" id="addKit" title="Keep this sound in the kit">Add to kit</button>
         </div>
       </div>
       <div class="row">
@@ -233,9 +250,13 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
     <div class="readouts" id="readouts" aria-live="polite"></div>
   </section>
 
+  <div class="tabbar">
+    <div class="tabs" id="tabs" role="tablist" aria-label="Sections"></div>
+  </div>
+
   <div id="bands"></div>
 
-  <div class="lower">
+  <div class="tabpanel outgrid" id="tab-output" role="tabpanel" aria-labelledby="tabbtn-output" hidden>
     <section class="panel" aria-labelledby="outH">
       <div class="panel-h"><h2 id="outH">Output</h2><span class="note">The preview is the file: it plays exactly what will be saved.</span></div>
       <div class="fmtgrid">
@@ -247,7 +268,6 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <div class="row">
         <button class="btn primary" id="saveWav">Save WAV</button>
         <button class="btn" id="sendDb" title="Open Discobot and put this sound on a drum lane">Send to Discobot</button>
-        <button class="btn" id="addKit">Add to kit</button>
         <button class="btn" id="savePatch">Save patch</button>
         <button class="btn" id="loadPatch">Load patch or WAV</button>
         <input type="file" id="patchFile" accept=".json,.wav,application/json,audio/wav" hidden>
@@ -257,6 +277,14 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <p class="note-s">Each WAV carries its patch, so loading a saved WAV here brings the full sound back for editing.</p>
     </section>
 
+    <section class="panel session" aria-labelledby="sesH">
+      <div class="panel-h"><h2 id="sesH">Session recorder</h2></div>
+      <div id="jxbar"></div>
+      <p class="note-s">Shared with the other apps: keeps the last 48 seconds of whatever you've auditioned, as WAV plus a MIDI file of the hits. Tape Loop Deck can capture from here too.</p>
+    </section>
+  </div>
+
+  <div class="tabpanel" id="tab-kit" role="tabpanel" aria-labelledby="tabbtn-kit" hidden>
     <section class="panel" aria-labelledby="kitH">
       <div class="panel-h"><h2 id="kitH">Kit</h2><span class="note" id="kitNote"></span></div>
       <div class="row">
@@ -270,12 +298,6 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <div class="kit" id="kitList"></div>
     </section>
   </div>
-
-  <section class="session" aria-labelledby="sesH">
-    <div class="panel-h"><span class="lbl" id="sesH">Session recorder</span></div>
-    <div id="jxbar"></div>
-    <p class="note-s">Shared with the other apps: keeps the last 48 seconds of whatever you've auditioned, as WAV plus a MIDI file of the hits. Tape Loop Deck can capture from here too.</p>
-  </section>
 </main>
 <div class="toast" id="toast" role="status" hidden></div>
 <script id="jam-clips">
@@ -1349,7 +1371,7 @@ var DF_PARAMS = [
   { id: 'f1_cut', label: 'Cutoff', min: 20, max: 20000, scale: 'log', d: 'hz' },
   { id: 'f1_res', label: 'Reso', min: 0, max: 1, d: 'pct' },
   { id: 'f1_env', label: 'Env amt', min: -6, max: 8, d: 'oct' },
-  { id: 'f1_dec', label: 'Env decay', min: 1, max: 3000, scale: 'log', d: 'ms' },
+  { id: 'f1_dec', label: 'Env time', min: 1, max: 3000, scale: 'log', d: 'ms' },
   { id: 'f1_track', label: 'Pitch trk', min: 0, max: 1, d: 'pct' },
   { id: 'a1_att', label: 'Attack', min: 0, max: 200, scale: 'sq', d: 'ms' },
   { id: 'a1_hold', label: 'Hold', min: 0, max: 4000, scale: 'sq', d: 'ms' },
@@ -1362,13 +1384,13 @@ var DF_PARAMS = [
   { id: 'nz_lvl', label: 'Noise', min: 0, max: 1, d: 'pct' },
   { id: 'mt_set', label: 'Metal set', opts: [['808', '6 square'], ['606', 'Tight 6'], ['harm', 'Harmonic'], ['bell', '2 bell'], ['glass', 'Glass']] },
   { id: 'mt_lvl', label: 'Metal', min: 0, max: 1, d: 'pct' },
-  { id: 'mt_freq', label: 'Metal tune', min: 40, max: 2000, scale: 'log', d: 'hz' },
+  { id: 'mt_freq', label: 'Tune', min: 40, max: 2000, scale: 'log', d: 'hz' },
   { id: 'mt_spread', label: 'Spread', min: 0.2, max: 2.5, d: 'x' },
   { id: 'f2_type', label: 'Mode', opts: [['off', 'Off'], ['lp12', 'LP12'], ['lp24', 'LP24'], ['bp', 'BP'], ['hp12', 'HP12'], ['hp24', 'HP24'], ['notch', 'Notch']] },
   { id: 'f2_cut', label: 'Cutoff', min: 20, max: 20000, scale: 'log', d: 'hz' },
   { id: 'f2_res', label: 'Reso', min: 0, max: 1, d: 'pct' },
   { id: 'f2_env', label: 'Env amt', min: -6, max: 8, d: 'oct' },
-  { id: 'f2_dec', label: 'Env decay', min: 1, max: 3000, scale: 'log', d: 'ms' },
+  { id: 'f2_dec', label: 'Env time', min: 1, max: 3000, scale: 'log', d: 'ms' },
   { id: 'f2_lc', label: 'Low cut', min: 20, max: 16000, scale: 'log', d: 'hz' },
   { id: 'a2_att', label: 'Attack', min: 0, max: 200, scale: 'sq', d: 'ms' },
   { id: 'a2_hold', label: 'Hold', min: 0, max: 4000, scale: 'sq', d: 'ms' },
@@ -1376,7 +1398,7 @@ var DF_PARAMS = [
   { id: 'a2_curve', label: 'Curve', min: 0, max: 1, d: 'curve' },
   { id: 'burst_n', label: 'Bursts', min: 1, max: 8, step: 1, d: 'n' },
   { id: 'burst_gap', label: 'Gap', min: 1, max: 60, scale: 'log', d: 'ms' },
-  { id: 'burst_dec', label: 'Burst len', min: 1, max: 40, scale: 'log', d: 'ms' },
+  { id: 'burst_dec', label: 'Length', min: 1, max: 40, scale: 'log', d: 'ms' },
   { id: 'width', label: 'Stereo', min: 0, max: 1, d: 'pct' },
   { id: 'n_lvl', label: 'Noise', min: 0, max: 1, d: 'pct' },
   { id: 'n_on', label: 'Noise layer', toggle: true },
@@ -1395,9 +1417,9 @@ var DF_PARAMS = [
   { id: 'ph_ratio', label: 'Spacing', min: 0.5, max: 1.5, d: 'ratio' },
   { id: 'ph_jitter', label: 'Scatter', min: 0, max: 1, d: 'pct' },
   { id: 'ph_fade', label: 'Fade', min: -12, max: 6, d: 'dbph' },
-  { id: 'ph_lrand', label: 'Level rand', min: 0, max: 1, d: 'pct' },
-  { id: 'ph_step', label: 'Tone step', min: -12, max: 12, d: 'st' },
-  { id: 'ph_trand', label: 'Tone rand', min: 0, max: 24, d: 'stpm' },
+  { id: 'ph_lrand', label: 'Level ±', min: 0, max: 1, d: 'pct' },
+  { id: 'ph_step', label: 'Step', min: -12, max: 12, d: 'st' },
+  { id: 'ph_trand', label: 'Tone ±', min: 0, max: 24, d: 'stpm' },
   { id: 'ph_prob', label: 'Chance', min: 0, max: 1, d: 'pct' },
   // lfo
   { id: 'lfo_wave', label: 'Shape', opts: [['sine', 'Sine'], ['tri', 'Tri'], ['square', 'Sqr'], ['saw', 'Saw'], ['sh', 'S&H']] },
@@ -1937,40 +1959,80 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
 
   /* ---------------- module layout ---------------- */
   var BANDS = [
-    { id: 'tone', title: 'Tone layer', toggle: 't_on', hint: 'Oscillators, pitch sweep, filter and amp. Kicks, toms, snare bodies, bells.', mods: [
+    { id: 'tone', title: 'Tone layer', tab: 'Tone', toggle: 't_on', led: function (P) { return !!P.t_on; }, hint: 'Oscillators, pitch sweep, filter and amp. Kicks, toms, snare bodies, bells.', mods: [
       { title: 'OSC 1', sub: 'main', items: ['o1_wave', 'o1_freq', 'o1_lvl', 'o1_pw', 'o1_pwm', 'o1_pwmRate', 'analog'] },
       { title: 'OSC 2', sub: 'FM · ring · sync', items: ['o2_wave', 'o2_sync', 'o2_ratio', 'o2_fine', 'o2_lvl', 'o2_pw', 'o2_pwm', 'o2_pwmRate', 'fm_amt', 'fm_env', 'fm_dec', 'ring'] },
       { title: 'Pitch env', sub: 'sweep', graph: 'pe', items: ['pe_o2', 'pe_amt', 'pe_dec', 'pe_curve'] },
       { title: 'VCF', sub: 'tone', items: ['f1_type', 'f1_cut', 'f1_res', 'f1_env', 'f1_dec', 'f1_track'] },
       { title: 'VCA', sub: 'tone', graph: 'a1', items: ['a1_att', 'a1_hold', 'a1_dec', 'a1_curve'] }
     ] },
-    { id: 'noise', title: 'Noise & metal layer', toggle: 'n_on', hint: 'Noise and a six-oscillator metal bank. Hats, cymbals, claps, snare wires, shakers.', mods: [
+    { id: 'noise', title: 'Noise & metal layer', tab: 'Noise & metal', toggle: 'n_on', led: function (P) { return !!P.n_on; }, hint: 'Noise and a six-oscillator metal bank. Hats, cymbals, claps, snare wires, shakers.', mods: [
       { title: 'Sources', sub: 'noise · metal', items: ['nz_color', 'mt_set', 'nz_lvl', 'mt_lvl', 'mt_freq', 'mt_spread', 'width'] },
       { title: 'VCF', sub: 'noise', items: ['f2_type', 'f2_cut', 'f2_res', 'f2_env', 'f2_dec', 'f2_lc'] },
       { title: 'VCA', sub: 'noise · bursts', graph: 'a2', items: ['a2_att', 'a2_hold', 'a2_dec', 'a2_curve', 'burst_n', 'burst_gap', 'burst_dec'] }
     ] },
-    { id: 'shared', title: 'Click, phases, LFO & master', hint: 'Phases repeat the hit: rolls, flams, crackle, stutters.', mods: [
+    { id: 'phases', title: 'Click & phases', tab: 'Click & phases', hint: 'A transient on the attack, and repeats of the hit: rolls, flams, crackle, stutters.',
+      led: function (P) { return !!P.c_on || (P.ph_n > 1 && !!(P.ph_click || P.ph_noise || P.ph_tone)); }, mods: [
       { title: 'Click', sub: 'transient', toggle: 'c_on', items: ['c_mode', 'c_lvl', 'c_len', 'c_cut'] },
-      { title: 'Phases', sub: 'repeats', graph: 'ph', lead: 'Repeat', items: ['ph_click', 'ph_noise', 'ph_tone', 'ph_n', 'ph_gap', 'ph_ratio', 'ph_jitter', 'ph_fade', 'ph_lrand', 'ph_step', 'ph_trand', 'ph_prob'] },
+      { title: 'Phases', sub: 'repeats', graph: 'ph', lead: 'Repeat', items: ['ph_click', 'ph_noise', 'ph_tone', 'ph_n', 'ph_gap', 'ph_ratio', 'ph_jitter', 'ph_fade', 'ph_lrand', 'ph_step', 'ph_trand', 'ph_prob'] }
+    ] },
+    { id: 'master', title: 'LFO & master', tab: 'LFO & master', hint: 'Modulation, layer mix, drive, filters, lo-fi and length for the whole hit.',
+      led: function (P) { return P.lfo_amt > 0 || P.drive > 0 || P.crush_bits > 0 || P.crush_rate < 47999; }, mods: [
       { title: 'LFO', sub: 'modulation', items: ['lfo_wave', 'lfo_dest', 'lfo_rate', 'lfo_amt', 'lfo_phase'] },
       { title: 'Mix & drive', sub: 'layers · saturation', items: ['t_lvl', 'n_lvl', 'drive_type', 'drive', 'm_lc', 'm_hc'] },
       { title: 'Lo-fi & length', sub: 'crush · trim', items: ['len_mode', 'norm', 'crush_bits', 'crush_rate', 'len_ms', 'fade_ms', 'gain'] }
     ] }
   ];
   var GRAPHS = [];
+  /* ---------------- section tabs ---------------- */
+  var TABS = [];
+  function addTab(id, label, panel, led) {
+    var btn = h('button', { type: 'button', role: 'tab', id: 'tabbtn-' + id, 'aria-controls': panel.id, 'aria-selected': 'false', tabindex: '-1' });
+    var dot = led ? h('span', { class: 'led', 'aria-hidden': 'true' }) : null, txt = h('span', { text: label });
+    if (dot) btn.append(dot);
+    btn.append(txt);
+    btn.addEventListener('click', function () { showTab(id); });
+    btn.addEventListener('keydown', function (e) {
+      var i = TABS.findIndex(function (t) { return t.id === id; }), j = -1;
+      if (e.key === 'ArrowRight') j = (i + 1) % TABS.length; else if (e.key === 'ArrowLeft') j = (i - 1 + TABS.length) % TABS.length;
+      else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = TABS.length - 1;
+      if (j < 0) return;
+      e.preventDefault(); showTab(TABS[j].id); TABS[j].btn.focus();
+    });
+    $('#tabs').append(btn);
+    var t = { id: id, btn: btn, panel: panel, dot: dot, led: led, txt: txt };
+    TABS.push(t);
+    return t;
+  }
+  function showTab(id) {
+    if (!TABS.some(function (t) { return t.id === id; })) id = TABS[0].id;
+    TABS.forEach(function (t) { var on = t.id === id; t.btn.setAttribute('aria-selected', String(on)); t.btn.tabIndex = on ? 0 : -1; t.panel.hidden = !on; });
+    document.querySelectorAll('.tabbar .band-h').forEach(function (hd) { hd.hidden = hd.dataset.tab !== id; });
+    S.tab = id;
+    try { localStorage.setItem('df-tab', id); } catch (e) {}
+    drawGraphs();
+  }
+  function syncTabs() {
+    TABS.forEach(function (t) {
+      if (t.dot) { var on = t.led(S.patch); t.dot.classList.toggle('on', on); t.btn.title = on ? 'In use in this sound' : 'Not in use in this sound'; }
+    });
+  }
+
   function buildBands() {
-    var root = $('#bands'); root.className = 'band-stack'; root.style.display = 'grid'; root.style.gap = '18px';
+    var root = $('#bands');
     BANDS.forEach(function (bd) {
-      var band = h('section', { class: 'band', 'aria-label': bd.title });
-      var head = h('div', { class: 'band-h' }, h('h2', { text: bd.title }));
+      var band = h('section', { class: 'band tabpanel', id: 'tab-' + bd.id, role: 'tabpanel', 'aria-labelledby': 'tabbtn-' + bd.id, hidden: '' });
+      var head = h('div', { class: 'band-h' });
       if (bd.toggle) {
         var tb = togFor(bd.toggle, 'mini'); tb.textContent = 'On';
         bind(bd.toggle, function () { tb.textContent = S.patch[bd.toggle] ? 'On' : 'Off'; band.classList.toggle('off', !S.patch[bd.toggle]); });
         tb.textContent = S.patch[bd.toggle] ? 'On' : 'Off'; band.classList.toggle('off', !S.patch[bd.toggle]);
         tb.setAttribute('aria-label', bd.title + ' on');
-        head.append(tb);
+        head.append(h('span', { class: 'lbl', text: bd.title }), tb);
       }
-      head.append(h('span', { class: 'rule' }), h('span', { class: 'hint', text: bd.hint }));
+      head.append(h('span', { class: 'hint', text: bd.hint }));
+      head.hidden = true; head.dataset.tab = bd.id;
+      $('.tabbar').append(head);
       var mods = h('div', { class: 'mods' });
       bd.mods.forEach(function (m) {
         var mod = h('div', { class: 'mod' });
@@ -1998,10 +2060,11 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
         mod.append(knobs);
         mods.append(mod);
       });
-      band.append(head, mods);
+      band.append(mods);
       root.append(band);
+      addTab(bd.id, bd.tab, band, bd.led);
     });
-    DEPS.push(drawGraphs);
+    DEPS.push(drawGraphs, syncTabs);
   }
 
   /* ---------------- colors ---------------- */
@@ -2498,6 +2561,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
   /* ---------------- kit ---------------- */
   function renderKit() {
     var box = $('#kitList'); box.textContent = '';
+    if (kitTab && kitTab.count) kitTab.count.textContent = S.kit.length ? String(S.kit.length) : '';
     $('#kitNote').textContent = S.kit.length ? S.kit.length + (S.kit.length === 1 ? ' sound' : ' sounds') + ' · saved together as one .zip of WAVs plus kit.json' : '';
     $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length;
     if (!S.kit.length) {
@@ -2613,6 +2677,10 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
 
   /* ---------------- wire up ---------------- */
   buildCats(); buildBands(); buildFormat();
+  addTab('output', 'Output', $('#tab-output'));
+  var kitTab = addTab('kit', 'Kit', $('#tab-kit'));
+  kitTab.count = h('span', { class: 'count' }); kitTab.btn.append(kitTab.count);
+  showTab((function () { try { return localStorage.getItem('df-tab'); } catch (e) { return null; } })() || 'tone');
   var vp = potEl({ name: 'Vary amount', label: 'Vary', get: function () { return S.vary; }, set: function (v) { S.vary = clamp(v, 0, 1); vp.render(); persist(); }, done: function () {},
     norm: function (v) { return v; }, denorm: function (n) { return n; }, dflt: 0.15, disp: function (v) { return [String(Math.round(v * 100)), '%']; }, parse: function (x) { return parseFloat(x) / 100; } }, 'bare');
   $('#varyBox').append(vp.el);

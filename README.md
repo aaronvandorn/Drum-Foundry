@@ -25,8 +25,8 @@ A sound has three parts plus a master section:
   - **Phases:** how many hits, 1 to 64. **Gap:** time between the first two.
   - **Spacing:** each gap gets shorter (faster, like a bouncing ball) or longer (slower) by this factor; Even keeps them steady.
   - **Scatter:** blends from even spacing to random spacing; 100% scatters the hits like crackle.
-  - **Fade:** level change per phase in dB, down for decays, up for crescendo rolls. **Level rand:** random level per hit.
-  - **Tone step:** shifts each phase's pitch, click tone and noise filter by semitones, so repeats can climb or fall. **Tone rand:** a random shift per hit.
+  - **Fade:** level change per phase in dB, down for decays, up for crescendo rolls. **Level ±:** random level per hit.
+  - **Step:** shifts each phase's pitch, click tone and noise filter by semitones, so repeats can climb or fall. **Tone ±:** a random shift per hit.
   - **Chance:** the odds each phase after the first plays. Lowering it thins the pattern without reshuffling it.
   - The graph shows the timeline: one stem per hit, at its level. **New seed** reshuffles scatter and randomness.
 - **LFO:** sine, triangle, square, saw or sample-and-hold, up to audio rate, to pitch, either oscillator, FM depth, pulse width, either filter, the metal bank, or level.
@@ -34,6 +34,9 @@ A sound has three parts plus a master section:
 - **Lo-fi & length:** bit crush and sample-rate reduction (for the sound, separate from the file format), auto length (trimmed where the sound falls 66 dB below its peak) or a fixed length, end fade, gain, and normalize.
 
 ## Working with it
+
+- **Layout:** the sound's name, Play, the waveform and the spectrum stay at the top. Below them, tabs hold one section at a time: **Tone**, **Noise & metal**, **Click & phases**, **LFO & master**, **Output** (format, saving, sending, the session recorder) and **Kit**. A lit dot on a tab means that section is in use in the current sound. The page remembers the last tab.
+- **Add to kit** is next to the name.
 
 - **Categories:** Kick, Snare, Clap, Closed hat, Open hat, Cymbal, Tom, Percussion, Click & FX, each with several starting points. Buzz roll, Flam clap, Vinyl crackle, Glitch ticks, Bouncing ball and Stutter noise show off Phases.
 - **Audition on change** plays the sound after each edit. **Play** (or the space bar) plays it any time.
