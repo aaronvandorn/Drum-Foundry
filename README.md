@@ -61,6 +61,15 @@ A sound has three parts plus a master section:
 - If the browser blocks the new tab, allow pop-ups for this page.
 - Saved files are named by drum (`kick-…`, `snare-…`, `closed-hat-…`, `open-hat-…`, `cymbal-…`, `low-tom`, `perc-…`, `fx-…`). That means a saved kit also lands on the right lanes through Discobot's Import Kit by hand: unzip it and pick the WAVs.
 
+## Send to Logic Rhythm
+
+**Send to Logic Rhythm** (Output tab, the current sound) and **Send kit to Logic Rhythm** (Kit tab) hand the sounds to [Logic Rhythm](https://aaronvandorn.github.io/Logic-Rhythm/) in the same browser.
+
+- If Logic Rhythm is open in another tab, the sounds go straight to it. Switch to that tab to finish.
+- If it isn't open, the status line offers **Open Logic Rhythm**, and the sounds follow once it has loaded.
+- Logic Rhythm shows a dialog with each sound and the track it would play on: kick, snare, clap, closed hat, open hat, tom, and rim for a cymbal or percussion sound. Change any of them, or leave a sound on its Samples tab only, then press **Load**. Each sound becomes one of its sample slots, stored like an upload, so it is still there next visit. Sending a sound with the same name again updates that slot.
+- This uses the shared `kit-link.js` module (the `KIT-LINK` block in `index.html`), a BroadcastChannel between the apps on aaronvandorn.github.io. It works in the copy on GitHub Pages, not in a preview hosted somewhere else.
+
 ## Session recorder
 
 Uses the shared `jam-clips.js` module (the `JAM-CLIPS` block in `index.html`), like the other apps: the last 48 seconds of what you've auditioned can be saved as WAV plus a MIDI file of the hits (General MIDI drum notes on channel 10), and Tape Loop Deck can capture from it.

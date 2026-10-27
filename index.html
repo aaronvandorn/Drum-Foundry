@@ -268,6 +268,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
       <div class="row">
         <button class="btn primary" id="saveWav">Save WAV</button>
         <button class="btn" id="sendDb" title="Open Discobot and put this sound on a drum lane">Send to Discobot</button>
+        <button class="btn" id="sendLr" title="Put this sound on a Logic Rhythm track">Send to Logic Rhythm</button>
         <button class="btn" id="savePatch">Save patch</button>
         <button class="btn" id="loadPatch">Load patch or WAV</button>
         <input type="file" id="patchFile" accept=".json,.wav,application/json,audio/wav" hidden>
@@ -291,10 +292,12 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
         <button class="btn small" id="vars8">Add 8 variations</button>
         <button class="btn small primary" id="saveKit">Save kit (.zip)</button>
         <button class="btn small" id="sendKitDb" title="Open Discobot and put the whole kit on its drum lanes">Send kit to Discobot</button>
+        <button class="btn small" id="sendKitLr" title="Load the kit onto Logic Rhythm's tracks">Send kit to Logic Rhythm</button>
         <button class="btn small" id="loadKit">Load kit</button>
         <input type="file" id="kitFile" accept=".zip,.json,application/zip,application/json" hidden>
         <button class="btn small" id="clearKit">Clear</button>
       </div>
+      <p class="note-s dbstatus" id="kitStatus" aria-live="polite" hidden></p>
       <div class="kit" id="kitList"></div>
     </section>
   </div>
@@ -906,6 +909,121 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
   global.JamClips = { source: source, sources: function(){ return registry.slice(); }, receiver: receiver, barClock: barClock, wavBlob: wavBlob, zipBlob: zipBlob, download: download,
                       KEEP_SEC: KEEP_SEC, MAX_BARS: MAX_BARS };
 })(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script id="kit-link">
+/* KIT-LINK:BEGIN */
+/* ===== KIT LINK — send drum sounds from one app in the ecosystem to another =====
+   One identical copy of this block is embedded in each app that sends or receives kits (between the
+   KIT-LINK markers); kit-link.js is the source copy. Same browser and same site only: it talks over a
+   BroadcastChannel, so it works between tabs of the apps on aaronvandorn.github.io.
+
+   A sound is { name, role, data, mime }: data is a WAV file as an ArrayBuffer. role says what drum it is,
+   so the receiver can put it on the right track: 'kick', 'snare', 'clap', 'closedHat', 'openHat', 'tom',
+   'lowTom', 'highTom', 'cymbal', 'perc', 'fx', or null.
+
+   Receiving (e.g. Logic Rhythm):
+     KitLink.receiver({ app: 'logic', title: 'Logic Rhythm', onKit: function (kit, answer) {
+       // kit = { sender, sounds }. Show the sounds to the user; nothing need be kept until they confirm.
+       answer(n);   // when done: how many sounds were kept (0 = cancelled)
+     } });
+
+   Sending (e.g. Drum Foundry):
+     KitLink.send({ to: 'logic', url: '/Logic-Rhythm/', sender: 'Drum Foundry', sounds: [...],
+                    onStatus: function (state, info) {} });
+     state: 'looking' | 'closed' (info.open) | 'opening' | 'sent' (info.title) | 'done' (info.imported)
+            | 'blocked' | 'timeout'
+     If no tab of the receiver answers within a moment, the state is 'closed' and info.open() opens the
+     receiver's page in a new tab with #receive-kit (call it from a click); the kit goes once that tab is ready.
+
+   Messages: { kv: 1, t, from, ... } on CHANNEL.
+     sender   -> all       who    { app }                       is a receiver of this app open?
+     receiver -> sender    here   { to, app, title }            answer to who, or unasked on load with #receive-kit
+     sender   -> receiver  kit    { to, id, sender, sounds }
+     receiver -> sender    got    { to, id }
+     receiver -> sender    done   { to, id, imported }                                          */
+(function (global) {
+  'use strict';
+  if (global.KitLink) return;
+  var CHANNEL = 'aaronvandorn-kits-v1', KV = 1;
+  var ASK_MS = 700, OPEN_WAIT_MS = 30000, MAX_SOUNDS = 64, MAX_BYTES = 16 * 1024 * 1024;
+  var ROLES = ['kick', 'snare', 'clap', 'closedHat', 'openHat', 'tom', 'lowTom', 'highTom', 'cymbal', 'perc', 'fx'];
+  function rid() { return Math.random().toString(36).slice(2, 10); }
+  function open(onMsg) {
+    if (typeof BroadcastChannel === 'undefined') return null;
+    var ch = new BroadcastChannel(CHANNEL);
+    ch.onmessage = function (e) { var m = e.data; if (m && m.kv === KV && typeof m.t === 'string' && typeof m.from === 'string') onMsg(m); };
+    return ch;
+  }
+  /* Everything a sender says is checked before an app sees it. */
+  function cleanSounds(list) {
+    if (!Array.isArray(list)) return [];
+    var out = [];
+    for (var i = 0; i < list.length && out.length < MAX_SOUNDS; i++) {
+      var s = list[i];
+      if (!s || !(s.data instanceof ArrayBuffer) || s.data.byteLength < 44 || s.data.byteLength > MAX_BYTES) continue;
+      var name = String(typeof s.name === 'string' ? s.name : 'Sound').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 48) || 'Sound';
+      out.push({ name: name, role: ROLES.indexOf(s.role) >= 0 ? s.role : null, data: s.data, mime: 'audio/wav' });
+    }
+    return out;
+  }
+
+  function receiver(o) {
+    var id = rid(), busy = false;
+    var ch = open(function (m) {
+      if (m.t === 'who' && m.app === o.app) post({ t: 'here', to: m.from, app: o.app, title: o.title });
+      else if (m.t === 'kit' && m.to === id) {
+        var sounds = cleanSounds(m.sounds), sender = String(m.sender || 'Another app').slice(0, 40);
+        post({ t: 'got', to: m.from, id: m.id });
+        if (!sounds.length || busy) { post({ t: 'done', to: m.from, id: m.id, imported: 0 }); return; }
+        busy = true;
+        var answered = false;
+        o.onKit({ sender: sender, sounds: sounds }, function (n) {
+          if (answered) return; answered = true; busy = false;
+          post({ t: 'done', to: m.from, id: m.id, imported: Math.max(0, Math.round(+n || 0)) });
+        });
+      }
+    });
+    function post(m) { if (ch) { m.kv = KV; m.from = id; ch.postMessage(m); } }
+    var asked = false;
+    try { asked = /^#receive-kit\b/.test(location.hash); if (asked) history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    if (asked) post({ t: 'here', to: '*', app: o.app, title: o.title });
+    return { id: id };
+  }
+
+  function send(o) {
+    var status = o.onStatus || function () {};
+    var me = rid(), kitId = rid(), target = null, timer = 0, opened = false, sent = false;
+    var ch = open(function (m) {
+      if (m.t === 'here' && m.app === o.to && (m.to === me || (opened && m.to === '*')) && !target) {
+        target = m.from; clearTimeout(timer);
+        post({ t: 'kit', to: target, id: kitId, sender: o.sender, sounds: o.sounds });
+        sent = true; status('sent', { title: m.title || o.to, opened: opened });
+      } else if (m.t === 'done' && m.to === me && m.id === kitId) {
+        clearTimeout(timer); status('done', { imported: m.imported }); close();
+      }
+    });
+    function post(m) { m.kv = KV; m.from = me; ch.postMessage(m); }
+    function close() { try { ch.close(); } catch (e) {} }
+    if (!ch) { status('blocked', { reason: 'channel' }); return; }
+    status('looking', {});
+    post({ t: 'who', app: o.to });
+    timer = setTimeout(function () {
+      if (target) return;
+      // No tab of the receiver is open. Opening one needs a click, so hand the app a function to call from one.
+      status('closed', { open: function () {
+        if (target || opened) return;
+        var win = null;
+        try { win = global.open(o.url + '#receive-kit', '_blank'); } catch (e) { win = null; }
+        if (!win) { status('blocked', { reason: 'popup' }); close(); return; }
+        opened = true; status('opening', {});
+        timer = setTimeout(function () { if (!sent) { status('timeout', {}); close(); } }, OPEN_WAIT_MS);
+      } });
+    }, ASK_MS);
+  }
+
+  global.KitLink = { receiver: receiver, send: send, ROLES: ROLES, cleanSounds: cleanSounds };
+})(typeof window !== 'undefined' ? window : globalThis);
+/* KIT-LINK:END */
 </script>
 <script id="engine">
 /* ===== DRUM FOUNDRY ENGINE =====
@@ -2452,9 +2570,9 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     if (cat === 'tom') return /low|floor/i.test(name) ? 'snare2' : /high|\bhi\b/i.test(name) ? 'ride' : null;
     return null;
   }
-  var dbSend = null;
+  var dbSend = null, statusBox = '#dbStatus';
   function dbStatus(text, kind, retry) {
-    var box = $('#dbStatus'); box.textContent = ''; box.hidden = !text;
+    var box = $(statusBox); box.textContent = ''; box.hidden = !text;
     if (!text) return;
     box.append(h('span', { class: 'led' + (kind === 'ok' ? ' on' : kind === 'wait' ? ' hit' : '') }), h('span', { text: text }));
     if (retry) { var b = h('button', { class: 'btn small', type: 'button', text: retry.label }); b.addEventListener('click', retry.run); box.append(b); }
@@ -2472,9 +2590,9 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     });
   }
   function endSend() { if (dbSend) { clearTimeout(dbSend.timer); dbSend = null; } }
-  function sendToDiscobot(items, label, fallback) {
+  function sendToDiscobot(items, label, fallback, box) {
     if (!items.length) return;
-    endSend();
+    endSend(); statusBox = box || '#dbStatus';
     var w = null;
     try { w = window.open(DB_URL + '#receive', '_blank'); } catch (e) { w = null; }
     if (!w) {
@@ -2506,6 +2624,34 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
       dbStatus('Discobot couldn\'t take the sounds' + (typeof m.message === 'string' ? ': ' + m.message.slice(0, 160) : '.'), 'err', fb2);
     }
   });
+
+  /* ---------------- send to Logic Rhythm (same site: the shared KIT-LINK module) ---------------- */
+  var LR_URL = '/Logic-Rhythm/';
+  try { var qlr = new URLSearchParams(location.search).get('logicrhythm'); if (qlr && /^\/[^\/]/.test(qlr)) LR_URL = qlr; } catch (e) {}
+  var ROLE_OF = { kick: 'kick', snare: 'snare', clap: 'clap', hat: 'closedHat', ohat: 'openHat', cym: 'cymbal', perc: 'perc', fx: 'fx' };
+  function roleFor(cat, name) {
+    if (cat === 'tom') return /low|floor/i.test(name) ? 'lowTom' : /high|\bhi\b/i.test(name) ? 'highTom' : 'tom';
+    return ROLE_OF[cat] || null;
+  }
+  function sendToLogic(items, label, fallback, box) {
+    if (!items.length) return;
+    endSend(); statusBox = box || '#dbStatus';
+    if (!window.KitLink) { dbStatus('This page can\'t reach Logic Rhythm.', 'err', fallback); return; }
+    var sounds = items.slice(0, DB_MAX_FILES).map(function (it) {
+      var r = Object.assign({}, it.res || E.render(it.patch, S.fmt)); r.fmt = clone(S.fmt);
+      return { name: it.name, role: roleFor(it.cat, it.name), mime: 'audio/wav', data: wavFile(r, it.name, patchMeta(it.name, it.cat, it.patch)).buffer };
+    });
+    KitLink.send({ to: 'logic', url: LR_URL, sender: 'Drum Foundry', sounds: sounds, onStatus: function (st, info) {
+      statusBox = box || '#dbStatus';
+      if (st === 'looking') dbStatus('Looking for Logic Rhythm…', 'wait');
+      else if (st === 'closed') dbStatus('Logic Rhythm isn\'t open in this browser.', '', { label: 'Open Logic Rhythm', run: info.open });
+      else if (st === 'opening') dbStatus('Opening Logic Rhythm…', 'wait');
+      else if (st === 'sent') dbStatus('Sent ' + label + '. ' + (info.opened ? 'In Logic Rhythm, choose a track for each sound and press Load.' : 'Switch to the Logic Rhythm tab, choose a track for each sound and press Load.'), 'wait');
+      else if (st === 'done') { var n = Math.max(0, Math.round(+info.imported || 0)); dbStatus(n ? 'Logic Rhythm loaded ' + n + (n === 1 ? ' sound.' : ' sounds.') : 'Nothing was loaded in Logic Rhythm.', n ? 'ok' : ''); }
+      else if (st === 'blocked') dbStatus(info.reason === 'popup' ? 'Your browser didn\'t open Logic Rhythm. Allow pop-ups for this page, or save and use its Samples tab.' : 'This browser can\'t pass sounds between tabs.', 'err', fallback);
+      else if (st === 'timeout') dbStatus('Logic Rhythm didn\'t answer. It only takes sounds from Drum Foundry on the same site (aaronvandorn.github.io).', 'err', fallback);
+    } });
+  }
 
   /* ---------------- presets & head ---------------- */
   function buildCats() {
@@ -2563,7 +2709,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     var box = $('#kitList'); box.textContent = '';
     if (kitTab && kitTab.count) kitTab.count.textContent = S.kit.length ? String(S.kit.length) : '';
     $('#kitNote').textContent = S.kit.length ? S.kit.length + (S.kit.length === 1 ? ' sound' : ' sounds') + ' · saved together as one .zip of WAVs plus kit.json' : '';
-    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length;
+    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length; $('#sendKitLr').disabled = !S.kit.length;
     if (!S.kit.length) {
       box.append(h('div', { class: 'empty' }, 'Your kit is empty. Press ', h('b', { text: 'Add to kit' }), ' to keep the current sound here, or ', h('b', { text: 'Add 8 variations' }), ' for a batch of takes on it.'));
       return;
@@ -2725,7 +2871,15 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
   });
   $('#sendKitDb').addEventListener('click', function () {
     if (!S.kit.length) return;
-    sendToDiscobot(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, DB_MAX_FILES) + ' sounds)', { label: 'Save kit', run: saveKit });
+    sendToDiscobot(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, DB_MAX_FILES) + ' sounds)', { label: 'Save kit', run: saveKit }, '#kitStatus');
+  });
+  $('#sendLr').addEventListener('click', function () {
+    var item = { name: S.name, cat: S.cat, patch: clone(S.patch), res: (!S.busy && !S.dirty && S.res) ? S.res : null };
+    sendToLogic([item], S.name, { label: 'Save WAV', run: saveWav });
+  });
+  $('#sendKitLr').addEventListener('click', function () {
+    if (!S.kit.length) return;
+    sendToLogic(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, DB_MAX_FILES) + ' sounds)', { label: 'Save kit', run: saveKit }, '#kitStatus');
   });
   $('#loadKit').addEventListener('click', function () { $('#kitFile').click(); });
   $('#kitFile').addEventListener('change', function (e) {
