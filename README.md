@@ -21,13 +21,21 @@ A sound has three parts plus a master section:
   - **VCF:** its own filter with a separate low cut.
   - **VCA:** attack, hold, decay and curve, plus **bursts** (count, gap, burst length) for claps and rattles.
 - **Click:** a short noise or blip transient for attack.
+- **Phases:** repeat the hit instead of playing it once, for rolls, flams, ratchets, bouncing balls, stutters and vinyl crackle. Choose what repeats (**Click**, **Noise** layer, **Tone** layer, in any combination); each phase retriggers that part's envelopes and sweeps.
+  - **Phases:** how many hits, 1 to 64. **Gap:** time between the first two.
+  - **Spacing:** each gap gets shorter (faster, like a bouncing ball) or longer (slower) by this factor; Even keeps them steady.
+  - **Scatter:** blends from even spacing to random spacing; 100% scatters the hits like crackle.
+  - **Fade:** level change per phase in dB, down for decays, up for crescendo rolls. **Level rand:** random level per hit.
+  - **Tone step:** shifts each phase's pitch, click tone and noise filter by semitones, so repeats can climb or fall. **Tone rand:** a random shift per hit.
+  - **Chance:** the odds each phase after the first plays. Lowering it thins the pattern without reshuffling it.
+  - The graph shows the timeline: one stem per hit, at its level. **New seed** reshuffles scatter and randomness.
 - **LFO:** sine, triangle, square, saw or sample-and-hold, up to audio rate, to pitch, either oscillator, FM depth, pulse width, either filter, the metal bank, or level.
 - **Mix & drive:** layer levels, drive (warm, clip, or fold), master low cut and high cut.
 - **Lo-fi & length:** bit crush and sample-rate reduction (for the sound, separate from the file format), auto length (trimmed where the sound falls 66 dB below its peak) or a fixed length, end fade, gain, and normalize.
 
 ## Working with it
 
-- **Categories:** Kick, Snare, Clap, Closed hat, Open hat, Cymbal, Tom, Percussion, Click & FX, each with several starting points.
+- **Categories:** Kick, Snare, Clap, Closed hat, Open hat, Cymbal, Tom, Percussion, Click & FX, each with several starting points. Buzz roll, Flam clap, Vinyl crackle, Glitch ticks, Bouncing ball and Stutter noise show off Phases.
 - **Audition on change** plays the sound after each edit. **Play** (or the space bar) plays it any time.
 - **Knobs:** drag up or right to raise, Shift for fine, double-click to reset. Click the number to type a value. Arrow keys and the wheel work while a knob is focused.
 - **Vary** nudges every setting by the Vary amount. **Random** picks a starting point in the category and varies it. **New seed** keeps the settings and rerolls the noise and drift.
