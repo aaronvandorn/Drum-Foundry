@@ -70,6 +70,14 @@ A sound has three parts plus a master section:
 - Logic Rhythm shows a dialog with each sound and the track it would play on: kick, snare, clap, closed hat, open hat, tom, and rim for a cymbal or percussion sound. Change any of them, or leave a sound on its Samples tab only, then press **Load**. Each sound becomes one of its sample slots, stored like an upload, so it is still there next visit. Sending a sound with the same name again updates that slot.
 - This uses the shared `kit-link.js` module (the `KIT-LINK` block in `index.html`), a BroadcastChannel between the apps on aaronvandorn.github.io. It works in the copy on GitHub Pages, not in a preview hosted somewhere else.
 
+
+## Send to P-6
+
+**Send to P-6** (Output tab, the current sound) and **Send kit to P-6** (Kit tab) hand the sounds to [P-6 Sample Banks](https://aaronvandorn.github.io/P-6/) in the same browser, the same way as Logic Rhythm.
+
+- If P-6 Sample Banks is open in another tab, the sounds go straight to it; otherwise the status line offers **Open P-6** and the sounds follow once it has loaded.
+- P-6 shows a dialog: pick the bank and the first pad, and the sounds fill pads in order from there (up to 48, all eight banks). It says which pads they land on and which existing pads they'd replace. Press **Add them**, or Cancel.
+- Sounds arrive as WAVs at the format chosen on the Output tab; set per-pad format and use **Fit to the P-6** in P-6 before writing to the device.
 ## Session recorder
 
 Uses the shared `jam-clips.js` module (the `JAM-CLIPS` block in `index.html`), like the other apps: the last 48 seconds of what you've auditioned can be saved as WAV plus a MIDI file of the hits (General MIDI drum notes on channel 10), and Tape Loop Deck can capture from it.

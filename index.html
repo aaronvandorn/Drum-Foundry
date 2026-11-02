@@ -269,6 +269,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
         <button class="btn primary" id="saveWav">Save WAV</button>
         <button class="btn" id="sendDb" title="Open Discobot and put this sound on a drum lane">Send to Discobot</button>
         <button class="btn" id="sendLr" title="Put this sound on a Logic Rhythm track">Send to Logic Rhythm</button>
+        <button class="btn" id="sendP6" title="Put this sound on a P-6 Sample Banks pad">Send to P-6</button>
         <button class="btn" id="savePatch">Save patch</button>
         <button class="btn" id="loadPatch">Load patch or WAV</button>
         <input type="file" id="patchFile" accept=".json,.wav,application/json,audio/wav" hidden>
@@ -293,6 +294,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
         <button class="btn small primary" id="saveKit">Save kit (.zip)</button>
         <button class="btn small" id="sendKitDb" title="Open Discobot and put the whole kit on its drum lanes">Send kit to Discobot</button>
         <button class="btn small" id="sendKitLr" title="Load the kit onto Logic Rhythm's tracks">Send kit to Logic Rhythm</button>
+        <button class="btn small" id="sendKitP6" title="Put the kit on P-6 Sample Banks pads, one sound per pad">Send kit to P-6</button>
         <button class="btn small" id="loadKit">Load kit</button>
         <input type="file" id="kitFile" accept=".zip,.json,application/zip,application/json" hidden>
         <button class="btn small" id="clearKit">Clear</button>
@@ -2625,33 +2627,45 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     }
   });
 
-  /* ---------------- send to Logic Rhythm (same site: the shared KIT-LINK module) ---------------- */
-  var LR_URL = '/Logic-Rhythm/';
-  try { var qlr = new URLSearchParams(location.search).get('logicrhythm'); if (qlr && /^\/[^\/]/.test(qlr)) LR_URL = qlr; } catch (e) {}
+  /* ---------------- send to Logic Rhythm / P-6 (same site: the shared KIT-LINK module) ---------------- */
   var ROLE_OF = { kick: 'kick', snare: 'snare', clap: 'clap', hat: 'closedHat', ohat: 'openHat', cym: 'cymbal', perc: 'perc', fx: 'fx' };
   function roleFor(cat, name) {
     if (cat === 'tom') return /low|floor/i.test(name) ? 'lowTom' : /high|\bhi\b/i.test(name) ? 'highTom' : 'tom';
     return ROLE_OF[cat] || null;
   }
-  function sendToLogic(items, label, fallback, box) {
-    if (!items.length) return;
+  /* Each same-site receiver: its Kit Link app id, its page, and what the user does there to finish.
+     ?logicrhythm=/path/ or ?p6=/path/ points at another copy (testing). */
+  var KL_APPS = {
+    logic: { title: 'Logic Rhythm', url: '/Logic-Rhythm/', q: 'logicrhythm', max: DB_MAX_FILES,
+             finish: 'choose a track for each sound and press Load', loaded: 'loaded', fallbackHint: 'save and use its Samples tab' },
+    p6:    { title: 'P-6', url: '/P-6/', q: 'p6', max: 48,
+             finish: 'pick the bank and first pad, then press Add them', loaded: 'added', fallbackHint: 'save and load the files there' }
+  };
+  Object.keys(KL_APPS).forEach(function (k) {
+    try { var q = new URLSearchParams(location.search).get(KL_APPS[k].q); if (q && /^\/[^\/]/.test(q)) KL_APPS[k].url = q; } catch (e) {}
+  });
+  function sendViaKitLink(to, items, label, fallback, box) {
+    var A = KL_APPS[to];
+    if (!items.length || !A) return;
     endSend(); statusBox = box || '#dbStatus';
-    if (!window.KitLink) { dbStatus('This page can\'t reach Logic Rhythm.', 'err', fallback); return; }
-    var sounds = items.slice(0, DB_MAX_FILES).map(function (it) {
+    if (!window.KitLink) { dbStatus('This page can\'t reach ' + A.title + '.', 'err', fallback); return; }
+    var sounds = items.slice(0, A.max).map(function (it) {
       var r = Object.assign({}, it.res || E.render(it.patch, S.fmt)); r.fmt = clone(S.fmt);
       return { name: it.name, role: roleFor(it.cat, it.name), mime: 'audio/wav', data: wavFile(r, it.name, patchMeta(it.name, it.cat, it.patch)).buffer };
     });
-    KitLink.send({ to: 'logic', url: LR_URL, sender: 'Drum Foundry', sounds: sounds, onStatus: function (st, info) {
+    KitLink.send({ to: to, url: A.url, sender: 'Drum Foundry', sounds: sounds, onStatus: function (st, info) {
       statusBox = box || '#dbStatus';
-      if (st === 'looking') dbStatus('Looking for Logic Rhythm…', 'wait');
-      else if (st === 'closed') dbStatus('Logic Rhythm isn\'t open in this browser.', '', { label: 'Open Logic Rhythm', run: info.open });
-      else if (st === 'opening') dbStatus('Opening Logic Rhythm…', 'wait');
-      else if (st === 'sent') dbStatus('Sent ' + label + '. ' + (info.opened ? 'In Logic Rhythm, choose a track for each sound and press Load.' : 'Switch to the Logic Rhythm tab, choose a track for each sound and press Load.'), 'wait');
-      else if (st === 'done') { var n = Math.max(0, Math.round(+info.imported || 0)); dbStatus(n ? 'Logic Rhythm loaded ' + n + (n === 1 ? ' sound.' : ' sounds.') : 'Nothing was loaded in Logic Rhythm.', n ? 'ok' : ''); }
-      else if (st === 'blocked') dbStatus(info.reason === 'popup' ? 'Your browser didn\'t open Logic Rhythm. Allow pop-ups for this page, or save and use its Samples tab.' : 'This browser can\'t pass sounds between tabs.', 'err', fallback);
-      else if (st === 'timeout') dbStatus('Logic Rhythm didn\'t answer. It only takes sounds from Drum Foundry on the same site (aaronvandorn.github.io).', 'err', fallback);
+      if (st === 'looking') dbStatus('Looking for ' + A.title + '…', 'wait');
+      else if (st === 'closed') dbStatus(A.title + ' isn\'t open in this browser.', '', { label: 'Open ' + A.title, run: info.open });
+      else if (st === 'opening') dbStatus('Opening ' + A.title + '…', 'wait');
+      else if (st === 'sent') dbStatus('Sent ' + label + '. ' + (info.opened ? 'In ' + A.title + ', ' : 'Switch to the ' + A.title + ' tab, ') + A.finish + '.', 'wait');
+      else if (st === 'done') { var n = Math.max(0, Math.round(+info.imported || 0)); dbStatus(n ? A.title + ' ' + A.loaded + ' ' + n + (n === 1 ? ' sound.' : ' sounds.') : 'Nothing was ' + A.loaded + ' in ' + A.title + '.', n ? 'ok' : ''); }
+      else if (st === 'blocked') dbStatus(info.reason === 'popup' ? 'Your browser didn\'t open ' + A.title + '. Allow pop-ups for this page, or ' + A.fallbackHint + '.' : 'This browser can\'t pass sounds between tabs.', 'err', fallback);
+      else if (st === 'timeout') dbStatus(A.title + ' didn\'t answer. It only takes sounds from Drum Foundry on the same site (aaronvandorn.github.io).', 'err', fallback);
     } });
   }
+  function sendToLogic(items, label, fallback, box) { sendViaKitLink('logic', items, label, fallback, box); }
+  function sendToP6(items, label, fallback, box) { sendViaKitLink('p6', items, label, fallback, box); }
 
   /* ---------------- presets & head ---------------- */
   function buildCats() {
@@ -2709,7 +2723,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     var box = $('#kitList'); box.textContent = '';
     if (kitTab && kitTab.count) kitTab.count.textContent = S.kit.length ? String(S.kit.length) : '';
     $('#kitNote').textContent = S.kit.length ? S.kit.length + (S.kit.length === 1 ? ' sound' : ' sounds') + ' · saved together as one .zip of WAVs plus kit.json' : '';
-    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length; $('#sendKitLr').disabled = !S.kit.length;
+    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length; $('#sendKitLr').disabled = !S.kit.length; $('#sendKitP6').disabled = !S.kit.length;
     if (!S.kit.length) {
       box.append(h('div', { class: 'empty' }, 'Your kit is empty. Press ', h('b', { text: 'Add to kit' }), ' to keep the current sound here, or ', h('b', { text: 'Add 8 variations' }), ' for a batch of takes on it.'));
       return;
@@ -2880,6 +2894,14 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
   $('#sendKitLr').addEventListener('click', function () {
     if (!S.kit.length) return;
     sendToLogic(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, DB_MAX_FILES) + ' sounds)', { label: 'Save kit', run: saveKit }, '#kitStatus');
+  });
+  $('#sendP6').addEventListener('click', function () {
+    var item = { name: S.name, cat: S.cat, patch: clone(S.patch), res: (!S.busy && !S.dirty && S.res) ? S.res : null };
+    sendToP6([item], S.name, { label: 'Save WAV', run: saveWav });
+  });
+  $('#sendKitP6').addEventListener('click', function () {
+    if (!S.kit.length) return;
+    sendToP6(S.kit.map(function (k) { return { name: k.name, cat: k.cat, patch: clone(k.patch) }; }), 'the kit (' + Math.min(S.kit.length, 48) + ' sounds)', { label: 'Save kit', run: saveKit }, '#kitStatus');
   });
   $('#loadKit').addEventListener('click', function () { $('#kitFile').click(); });
   $('#kitFile').addEventListener('change', function (e) {
