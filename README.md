@@ -49,7 +49,7 @@ A sound has three parts plus a master section:
 
 - **Output:** 22.05, 32, 44.1, 48, 88.2 or 96 kHz; 8, 16 or 24-bit PCM or 32-bit float; mono or stereo; dither on or off.
 - **Save WAV** saves the current sound. Every WAV carries its full patch in a small extra chunk (ignored by other software), so **Load patch or WAV** brings any sound saved here back for editing. **Save patch** saves just the settings as JSON.
-- **Kit:** collect sounds with **Add to kit** or **Add 8 variations**, rename them, edit and replace them, then **Save kit** for one .zip of numbered WAVs plus `kit.json`. **Load kit** reads that .zip (or the JSON) back in.
+- **Kit:** collect sounds with **Add to kit** or **Add 8 variations**, rename them, edit and replace them, hear them all in order with **Preview all**, then **Save kit** for one .zip of numbered WAVs plus `kit.json`. **Load kit** reads that .zip (or the JSON) back in.
 - The current sound, settings and kit are kept in your browser between visits.
 
 ## Send to Discobot

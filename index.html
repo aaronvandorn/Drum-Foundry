@@ -175,6 +175,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
 .kit{display:grid;gap:4px}
 .kitrow{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto auto;gap:8px;align-items:center;background:var(--well);border:1px solid var(--line);border-radius:5px;padding:4px 6px}
 .kitrow.cur{border-color:var(--oxide-hi)}
+.kitrow.now{border-color:var(--oxide-hi);box-shadow:inset 3px 0 0 var(--oxide-hi)}
 .kitrow .ix{font-family:var(--mono);font-size:12px;color:var(--oxide-hi);text-align:right}
 .kitrow input{background:transparent;border:0;border-bottom:1px solid transparent;font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.03em;padding:0 2px;min-width:0;width:100%}
 .kitrow input:focus{outline:none;border-bottom-color:var(--oxide-hi)}
@@ -290,6 +291,7 @@ input.txt{font-family:var(--display);font-weight:700;font-size:20px;letter-spaci
     <section class="panel" aria-labelledby="kitH">
       <div class="panel-h"><h2 id="kitH">Kit</h2><span class="note" id="kitNote"></span></div>
       <div class="row">
+        <button class="btn small" id="previewAll" aria-pressed="false" title="Play every sound in the kit, one after another">▶ Preview all</button>
         <button class="btn small" id="vars8">Add 8 variations</button>
         <button class="btn small primary" id="saveKit">Save kit (.zip)</button>
         <button class="btn small" id="sendKitDb" title="Open Discobot and put the whole kit on its drum lanes">Send kit to Discobot</button>
@@ -2719,11 +2721,38 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
   }
 
   /* ---------------- kit ---------------- */
+  /* Preview all: plays each kit sound in order. Each gets its own length (capped, so long cymbals
+     don't stall the run) plus a short gap; pressing again, or editing the kit, stops it. */
+  var PV = { on: false, i: 0, timer: 0 };
+  function previewStop() {
+    clearTimeout(PV.timer); PV.on = false;
+    var b = $('#previewAll'); b.setAttribute('aria-pressed', 'false'); b.textContent = '▶ Preview all';
+    document.querySelectorAll('#kitList .kitrow.now').forEach(function (r) { r.classList.remove('now'); });
+  }
+  function previewStep() {
+    if (!PV.on) return;
+    document.querySelectorAll('#kitList .kitrow.now').forEach(function (r) { r.classList.remove('now'); });
+    if (PV.i >= S.kit.length) { previewStop(); return; }
+    var k = S.kit[PV.i], row = document.querySelectorAll('#kitList .kitrow')[PV.i];
+    if (row) { row.classList.add('now'); row.scrollIntoView({ block: 'nearest' }); }
+    var r = E.render(k.patch, S.fmt); r.fmt = clone(S.fmt); S.playing = false; play(1, 1, r);
+    var dur = r.length / r.sr;
+    PV.i++;
+    PV.timer = setTimeout(previewStep, (Math.min(dur, 1.5) + 0.15) * 1000);
+  }
+  function previewAll() {
+    if (PV.on) { previewStop(); return; }
+    if (!S.kit.length || !ensureCtx()) return;
+    PV.on = true; PV.i = 0;
+    var b = $('#previewAll'); b.setAttribute('aria-pressed', 'true'); b.textContent = '■ Stop';
+    previewStep();
+  }
   function renderKit() {
+    if (PV.on) previewStop();
     var box = $('#kitList'); box.textContent = '';
     if (kitTab && kitTab.count) kitTab.count.textContent = S.kit.length ? String(S.kit.length) : '';
     $('#kitNote').textContent = S.kit.length ? S.kit.length + (S.kit.length === 1 ? ' sound' : ' sounds') + ' · saved together as one .zip of WAVs plus kit.json' : '';
-    $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length; $('#sendKitLr').disabled = !S.kit.length; $('#sendKitP6').disabled = !S.kit.length;
+    $('#previewAll').disabled = !S.kit.length; $('#saveKit').disabled = !S.kit.length; $('#clearKit').disabled = !S.kit.length; $('#sendKitDb').disabled = !S.kit.length; $('#sendKitLr').disabled = !S.kit.length; $('#sendKitP6').disabled = !S.kit.length;
     if (!S.kit.length) {
       box.append(h('div', { class: 'empty' }, 'Your kit is empty. Press ', h('b', { text: 'Add to kit' }), ' to keep the current sound here, or ', h('b', { text: 'Add 8 variations' }), ' for a batch of takes on it.'));
       return;
@@ -2878,6 +2907,7 @@ if (typeof module !== 'undefined') module.exports = { DF_CATEGORIES: DF_CATEGORI
     for (var i = 1; i <= 8; i++) addKit(S.name + ' v' + i, varyPatch(clone(S.patch), amt, false), S.cat);
     toast('Added 8 variations of ' + S.name);
   });
+  $('#previewAll').addEventListener('click', previewAll);
   $('#saveKit').addEventListener('click', saveKit);
   $('#sendDb').addEventListener('click', function () {
     var item = { name: S.name, cat: S.cat, patch: clone(S.patch), res: (!S.busy && !S.dirty && S.res) ? S.res : null };
